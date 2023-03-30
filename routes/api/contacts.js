@@ -5,6 +5,8 @@ const contacts = require("../../models/contacts");
 
 const router = express.Router();
 
+const HttpError = require("../../helpers/HttpError");
+
 const contactSchema = Joi.object({
   name: Joi.string().required(),
   email: Joi.string().email().required(),
@@ -29,9 +31,7 @@ router.get("/:contactId", async (req, res, next) => {
     const { contactId } = req.params;
     const result = await contacts.getContactById(contactId);
     if (!result) {
-      const error = new Error(`Contact with id=${contactId} not found`);
-      error.status = 404;
-      throw error;
+      throw HttpError(404, `Contact with id=${contactId} not found`);
     }
     res.status(200).json({
       status: "success",
@@ -47,8 +47,7 @@ router.post("/", async (req, res, next) => {
   try {
     const { error } = contactSchema.validate(req.body);
     if (error) {
-      error.status = 400;
-      throw error;
+      throw HttpError(400, error.message);
     }
     const result = await contacts.addContact(req.body);
     res.status(201).json({
@@ -66,9 +65,7 @@ router.delete("/:contactId", async (req, res, next) => {
     const { contactId } = req.params;
     const result = await contacts.removeContact(contactId);
     if (!result) {
-      const error = new Error(`Contact with id=${contactId} not found`);
-      error.status = 404;
-      throw error;
+      throw HttpError(404, `Contact with id=${contactId} not found`);
     }
     res.status(200).json({
       status: "success",
@@ -85,15 +82,12 @@ router.put("/:contactId", async (req, res, next) => {
   try {
     const { error } = contactSchema.validate(req.body);
     if (error) {
-      error.status = 400;
-      throw error;
+      throw HttpError(400, error.message);
     }
     const { contactId } = req.params;
     const result = await contacts.updateContact(contactId, req.body);
     if (!result) {
-      const error = new Error(`Contact with id=${contactId} not found`);
-      error.status = 404;
-      throw error;
+      throw HttpError(404, `Contact with id=${contactId} not found`);
     }
     res.status(200).json({
       status: "success",
